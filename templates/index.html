@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EyeCare Shield - Eye Flu Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c7da0;
+            --secondary-color: #468faf;
+            --light-color: #89c2d9;
+            --dark-color: #016492;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .main-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-top: 50px;
+        }
+
+        .upload-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            border: 2px dashed var(--light-color);
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary-color);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-file-upload:hover {
+            background-color: var(--dark-color);
+        }
+
+        #loading {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        #result {
+            font-size: 24px;
+            color: var(--dark-color);
+            margin-top: 20px;
+        }
+
+        #confidence {
+            color: var(--secondary-color);
+            font-size: 18px;
+        }
+
+        .info-section {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        #outputImage {
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-eye"></i> EyeCare Shield
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 main-container">
+                <div class="text-center">
+                    <h1 class="mb-4">Eye Flu Detection System</h1>
+                    <p class="text-muted mb-4">Upload an eye image for professional analysis and early detection</p>
+                </div>
+
+                <div class="upload-section text-center">
+                    <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+                    <label for="fileInput" class="custom-file-upload">
+                        <i class="fas fa-cloud-upload-alt"></i> Choose Image
+                    </label>
+                    <p id="fileName" class="mt-2 text-muted">No file selected</p>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary" onclick="uploadImage()">
+                        <i class="fas fa-diagnoses"></i> Analyze Image
+                    </button>
+                </div>
+
+                <div id="loading" class="text-center my-3" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Analyzing the image, please wait...
+                </div>
+
+                <div id="result" class="text-center"></div>
+                <div id="confidence" class="text-center"></div>
+
+                <img id="outputImage" class="img-fluid mx-auto d-block" alt="Uploaded Image">
+
+                <div class="info-section mt-4">
+                    <h4><i class="fas fa-info-circle"></i> About Eye Flu Detection</h4>
+                    <p>Our AI-powered system helps detect early signs of eye flu (conjunctivitis) by analyzing your eye image. Please note that this is a screening tool and should not replace professional medical advice.</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5><i class="fas fa-check-circle"></i> Accuracy</h5>
+                            <p>High precision AI model</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h5><i class="fas fa-user-md"></i> Medical Support</h5>
+                            <p>Consult a doctor for confirmation</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h5><i class="fas fa-shield-alt"></i> Privacy</h5>
+                            <p>Your images are secure and confidential</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer text-center">
+        <div class="container">
+            <p>&copy; 2024 EyeCare Shield. All Rights Reserved.</p>
+            <small>Powered by Advanced AI Technology</small>
+        </div>
+    </footer>
+
+    <script>
+        function previewImage(event) {
+            const fileInput = event.target;
+            const fileName = document.getElementById('fileName');
+            const outputImage = document.getElementById('outputImage');
+
+            if (fileInput.files && fileInput.files[0]) {
+                fileName.textContent = fileInput.files[0].name;
+                outputImage.src = URL.createObjectURL(fileInput.files[0]);
+                outputImage.style.display = 'block';
+            }
+        }
+
+        function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select an image file first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Reset previous results
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').innerText = '';
+            document.getElementById('confidence').innerText = '';
+            const outputImage = document.getElementById('outputImage');
+
+            // Fetch request to backend
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> ${data.error}`;
+                } else {
+                    const resultElement = document.getElementById('result');
+                    const confidenceElement = document.getElementById('confidence');
+
+                    // Styling results based on detection
+                    if (data.result.toLowerCase().includes('eye flu')) {
+                        resultElement.innerHTML = `<i class="fas fa-virus text-danger"></i> ${data.result}`;
+                        resultElement.classList.add('text-danger');
+                    } else {
+                        resultElement.innerHTML = `<i class="fas fa-check-circle text-success"></i> ${data.result}`;
+                        resultElement.classList.add('text-success');
+                    }
+
+                    const confidencePercent = (data.confidence * 100).toFixed(2);
+                    let confidenceText = `Confidence: ${confidencePercent}%`;
+                    
+                    if (data.confidence >= 0.8) {
+                        confidenceText += " (High confidence)";
+                        confidenceElement.classList.add('text-success');
+                    } else if (data.confidence >= 0.5) {
+                        confidenceText += " (Moderate confidence)";
+                        confidenceElement.classList.add('text-warning');
+                    } else {
+                        confidenceText += " (Low confidence)";
+                        confidenceElement.classList.add('text-danger');
+                    }
+
+                    confidenceElement.innerText = confidenceText;
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> An error occurred: ${error.message}`;
+            });
+        }
+    </script>
+</body>
+</html>
